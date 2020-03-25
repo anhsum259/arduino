@@ -19,7 +19,7 @@ int value = 0;
 unsigned long time1 = 0;
 unsigned long time2 = 0;
 
-const char* ssid = "home"; // Enter your WiFi name
+const char* ssid = "ZTE"; // Enter your WiFi name
 const char* password =  "0985328757"; // Enter WiFi password
 const char* mqttServer = "192.168.1.10";
 const int mqttPort = 1883;
