@@ -19,12 +19,12 @@ int value = 0;
 unsigned long time1 = 0;
 unsigned long time2 = 0;
 
-const char* ssid = "ZTE"; // Enter your WiFi name
-const char* password =  "0985328757"; // Enter WiFi password
-const char* mqttServer = "192.168.1.10";
+const char* ssid = "ZTE-d6a7e1"; // Enter your WiFi name
+const char* password =  "78312bd6"; // Enter WiFi password
+const char* mqttServer = "192.168.1.15";
 const int mqttPort = 1883;
-const char* mqttUser = "sunnyhome";
-const char* mqttPassword = "sum";
+const char* mqttUser = "sum";
+const char* mqttPassword = "20012018";
 
 byte willQoS = 1;                          //qos of publish (see README)
 
