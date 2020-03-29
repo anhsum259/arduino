@@ -2,6 +2,7 @@
 #include <PubSubClient.h>
 #include <SimpleKalmanFilter.h>
 #include <Wire.h> //include Wire.h library
+#include <ArduinoJson.h>
 SimpleKalmanFilter KalmanFilter(1, 1, 0.01);
 
 
@@ -23,8 +24,8 @@ const char* ssid = "ZTE-d6a7e1"; // Enter your WiFi name
 const char* password =  "78312bd6"; // Enter WiFi password
 const char* mqttServer = "192.168.1.15";
 const int mqttPort = 1883;
-const char* mqttUser = "sum";
-const char* mqttPassword = "20012018";
+const char* mqttUser = "sunnyhome";
+const char* mqttPassword = "0985328757";
 
 byte willQoS = 1;                          //qos of publish (see README)
 
@@ -52,7 +53,7 @@ void read_von() {
   // chuyen tu float vin -> kieu string
   char result[5];
   dtostrf(vin, 2, 0, result); // Leave room for too large numbers!
-  client.publish("home/solar/robot", result, willQoS); //Topic name
+  client.publish("home/solar", result, willQoS); //Topic name
 }
 
 
@@ -76,7 +77,7 @@ void setup() {
   while (!client.connected()) {
     Serial.println("Connecting to MQTT...");
 
-    if (client.connect("ESP8266Client", mqttUser, mqttPassword )) {
+    if (client.connect("ESP8266-Solar", mqttUser, mqttPassword )) {
 
       Serial.println("connected");
 
@@ -88,8 +89,8 @@ void setup() {
 
     }
   }
-  client.publish("home/solar/robot", "ESP8266-solarclean-ready"); //Topic name
-  client.subscribe("home/control/solar/robot", 1);
+  client.publish("home/solar", "ESP8266-solarclean-ready"); //Topic name
+  client.subscribe("home/solar", 1);
   /* scan I2C device */
   Wire.begin();
 }
@@ -109,13 +110,16 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
 }
 
+
 void loop() {
   client.loop();
-  if ( (unsigned long) (millis() - time1) > 60000 )
+
+  if ( (unsigned long) (millis() - time1) > 10000 )
   {
-    read_von();
+    publishData(100,88);
     time1 = millis();
   }
+
   /* scan i2c device */
   if ( (unsigned long) (millis() - time2) > 5000 )
   {
@@ -145,4 +149,42 @@ void loop() {
   }
 
 
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void publishData(float p_temperature, float p_humidity) {
+  // create a JSON object
+  // doc : https://github.com/bblanchon/ArduinoJson/wiki/API%20Reference
+  StaticJsonBuffer<200> jsonBuffer;
+  JsonObject& root = jsonBuffer.createObject();
+  // INFO: the data must be converted into a string; a problem occurs when using floats...
+  root["temperature"] = 88;//(String)p_temperature;
+  root["humidity"] = 99;//(String)p_humidity;
+  root.prettyPrintTo(Serial);
+  Serial.println("");
+  /*
+     {
+        "temperature": "23.20" ,
+        "humidity": "43.70"
+     }
+  */
+  char data[200];
+  root.printTo(data, root.measureLength() + 1);
+  client.publish("home/solar", data, true);
+  yield();
 }
