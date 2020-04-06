@@ -11,6 +11,7 @@ SimpleKalmanFilter KalmanFilter(1, 1, 0.01);
 int analogInput = 0;
 float vout = 0.0;
 float vin = 0.0;
+float vin1 = 0.0;
 float R1 = 100000.0; // resistance of R1 (100K) -see text!
 float R2 = 10000.0; // resistance of R2 (10K) - see text!
 int value = 0;
@@ -20,9 +21,9 @@ int value = 0;
 unsigned long time1 = 0;
 unsigned long time2 = 0;
 
-const char* ssid = "ZTE-d6a7e1"; // Enter your WiFi name
-const char* password =  "78312bd6"; // Enter WiFi password
-const char* mqttServer = "192.168.1.15";
+const char* ssid = "home";//"ZTE-d6a7e1"; // Enter your WiFi name
+const char* password =  "0985328757";//"78312bd6"; // Enter WiFi password
+const char* mqttServer = "192.168.1.10";
 const int mqttPort = 1883;
 const char* mqttUser = "sunnyhome";
 const char* mqttPassword = "0985328757";
@@ -35,28 +36,10 @@ int slaveAddress = 0x7E;
 
 WiFiClient espClient;
 PubSubClient client(espClient);
-
-
-void read_von() {
-  value = analogRead(analogInput);
-  value = KalmanFilter.updateEstimate(value);
-  vout = (value * 3.555) / 1024.0; // see text
-  vin = vout / (R2 / (R1 + R2));
-  vin = vin - 10.8;
-  vin = (vin / 0.018);
-  if (vin <= 0) {
-    vin = 0;
-  }
-  if (vin > 100) {
-    vin = 100;
-  }
-  // chuyen tu float vin -> kieu string
-  char result[5];
-  dtostrf(vin, 2, 0, result); // Leave room for too large numbers!
-  client.publish("home/solar", result, willQoS); //Topic name
-}
-
-
+int HeatingPin = 14;//GPIO05
+String switch1;
+String strTopic;
+String strPayload;
 
 
 void setup() {
@@ -89,13 +72,36 @@ void setup() {
 
     }
   }
-  client.publish("home/solar", "ESP8266-solarclean-ready"); //Topic name
-  client.subscribe("home/solar", 1);
+  //client.publish("home/solar", "ESP8266-solarclean-ready"); //Topic name
+  pinMode(HeatingPin, OUTPUT);
+  client.subscribe("home/solar/robot/esp8266/14");
   /* scan I2C device */
   Wire.begin();
 }
 
 void callback(char* topic, byte* payload, unsigned int length) {
+  payload[length] = '\0';
+  strTopic = String((char*)topic);
+  if (strTopic == "home/solar/robot/esp8266/14")
+  {
+    switch1 = String((char*)payload);
+    //Serial.println(switch1);
+    if (switch1 == "1")
+    {
+      Serial.println("ON");
+      digitalWrite(HeatingPin, HIGH);
+    }
+    else
+    {
+      Serial.println("OFF");
+      digitalWrite(HeatingPin, LOW);
+    }
+  }
+
+
+
+
+/*
 
   Serial.print("Message arrived in topic: ");
   Serial.println(topic);
@@ -107,7 +113,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
   Serial.println();
   Serial.println("-----------------------");
-
+*/
 }
 
 
@@ -116,7 +122,7 @@ void loop() {
 
   if ( (unsigned long) (millis() - time1) > 10000 )
   {
-    publishData(100,88);
+    publishData(100, 88);
     time1 = millis();
   }
 
@@ -168,13 +174,37 @@ void loop() {
 
 
 void publishData(float p_temperature, float p_humidity) {
+
+  value = analogRead(A0);
+  value = KalmanFilter.updateEstimate(value);
+  vout = (value * 3.555) / 1024.0; // see text
+  vin = vout / (R2 / (R1 + R2));
+  vin1 = vin;
+
+  vin = vin - 10.8;
+  vin = (vin / 0.018);
+  if (vin <= 0) {
+    vin = 0;
+  }
+  if (vin > 100) {
+    vin = 100;
+  }
+  // chuyen tu float vin -> kieu string
+  //char result[5];
+  //dtostrf(vin, 2, 0, result); // Leave room for too large numbers!
+  //client.publish("home/solar", result, willQoS); //Topic name
+
+
+
+
+
   // create a JSON object
   // doc : https://github.com/bblanchon/ArduinoJson/wiki/API%20Reference
   StaticJsonBuffer<200> jsonBuffer;
   JsonObject& root = jsonBuffer.createObject();
   // INFO: the data must be converted into a string; a problem occurs when using floats...
-  root["temperature"] = 88;//(String)p_temperature;
-  root["humidity"] = 99;//(String)p_humidity;
+  root["temperature"] = vin1;//(String)p_temperature;
+  root["humidity"] = vin;//(String)p_humidity;
   root.prettyPrintTo(Serial);
   Serial.println("");
   /*
