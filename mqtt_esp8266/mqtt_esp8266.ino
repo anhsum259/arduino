@@ -21,9 +21,9 @@ int value = 0;
 unsigned long time1 = 0;
 unsigned long time2 = 0;
 
-const char* ssid = "home";//"ZTE-d6a7e1"; // Enter your WiFi name
-const char* password =  "0985328757";//"78312bd6"; // Enter WiFi password
-const char* mqttServer = "192.168.1.10";
+const char* ssid = "ZTE-d6a7e1"; // Enter your WiFi name
+const char* password =  "78312bd6"; // Enter WiFi password
+const char* mqttServer = "192.168.1.17";
 const int mqttPort = 1883;
 const char* mqttUser = "sunnyhome";
 const char* mqttPassword = "0985328757";
@@ -74,7 +74,7 @@ void setup() {
   }
   //client.publish("home/solar", "ESP8266-solarclean-ready"); //Topic name
   pinMode(HeatingPin, OUTPUT);
-  client.subscribe("home/solar/robot/esp8266/14");
+  //client.subscribe("home/solar/robot/esp8266/14");
   /* scan I2C device */
   Wire.begin();
 }
@@ -120,9 +120,9 @@ void callback(char* topic, byte* payload, unsigned int length) {
 void loop() {
   client.loop();
 
-  if ( (unsigned long) (millis() - time1) > 10000 )
+  if ( (unsigned long) (millis() - time1) > 60000 )
   {
-    publishData(100, 88);
+    publishData(25, 21);
     time1 = millis();
   }
 
@@ -179,7 +179,7 @@ void publishData(float p_temperature, float p_humidity) {
   value = KalmanFilter.updateEstimate(value);
   vout = (value * 3.555) / 1024.0; // see text
   vin = vout / (R2 / (R1 + R2));
-  vin1 = vin;
+  vin1 = vin;//vin1 la gia tri dien ap, vin la phan tram dung luong
 
   vin = vin - 10.8;
   vin = (vin / 0.018);
@@ -190,14 +190,16 @@ void publishData(float p_temperature, float p_humidity) {
     vin = 100;
   }
   // chuyen tu float vin -> kieu string
-  //char result[5];
-  //dtostrf(vin, 2, 0, result); // Leave room for too large numbers!
-  //client.publish("home/solar", result, willQoS); //Topic name
+  char result[5];
+  dtostrf(vin, 2, 0, result); // Leave room for too large numbers!
+  client.publish("sensor_8266_01/percent", result, willQoS); //Topic name
+  char result1[5];
+  dtostrf(vin1, 4, 1, result1); // Leave room for too large numbers!
+  client.publish("sensor_8266_01/von", result1, willQoS); //Topic name
 
 
 
-
-
+  /*
   // create a JSON object
   // doc : https://github.com/bblanchon/ArduinoJson/wiki/API%20Reference
   StaticJsonBuffer<200> jsonBuffer;
@@ -212,9 +214,11 @@ void publishData(float p_temperature, float p_humidity) {
         "temperature": "23.20" ,
         "humidity": "43.70"
      }
-  */
+  
   char data[200];
   root.printTo(data, root.measureLength() + 1);
-  client.publish("home/solar", data, true);
+  //client.publish("sensor/humidity", data, true);
+  client.publish("sensor/humidity", vin, true);
   yield();
+  */
 }
