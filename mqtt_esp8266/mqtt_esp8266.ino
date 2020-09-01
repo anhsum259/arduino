@@ -3,7 +3,7 @@
 #include <SimpleKalmanFilter.h>
 #include <Wire.h> //include Wire.h library
 #include <ArduinoJson.h>
-SimpleKalmanFilter KalmanFilter(1, 1, 0.01);
+SimpleKalmanFilter KalmanFilter(1, 1, 0.02);
 
 
 
@@ -21,9 +21,9 @@ int value = 0;
 unsigned long time1 = 0;
 unsigned long time2 = 0;
 
-const char* ssid = "ZTE-d6a7e1"; // Enter your WiFi name
-const char* password =  "78312bd6"; // Enter WiFi password
-const char* mqttServer = "192.168.1.17";
+const char* ssid = "home"; // Enter your WiFi name
+const char* password =  "0985328757"; // Enter WiFi password
+const char* mqttServer = "192.168.1.10";
 const int mqttPort = 1883;
 const char* mqttUser = "sunnyhome";
 const char* mqttPassword = "0985328757";
@@ -177,10 +177,10 @@ void publishData(float p_temperature, float p_humidity) {
 
   value = analogRead(A0);
   value = KalmanFilter.updateEstimate(value);
-  vout = (value * 3.555) / 1024.0; // see text
+  vout = (value * 3.58) / 1024.0; // see text
   vin = vout / (R2 / (R1 + R2));
   vin1 = vin;//vin1 la gia tri dien ap, vin la phan tram dung luong
-
+  Serial.println(vin1);
   vin = vin - 10.8;
   vin = (vin / 0.018);
   if (vin <= 0) {
