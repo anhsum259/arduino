@@ -3,7 +3,7 @@
 #include <SimpleKalmanFilter.h>
 #include <Wire.h> //include Wire.h library
 #include <ArduinoJson.h>
-SimpleKalmanFilter KalmanFilter(1, 1, 0.03);
+SimpleKalmanFilter KalmanFilter(1, 1, 0.04);
 
 
 
